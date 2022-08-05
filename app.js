@@ -15,6 +15,7 @@ setInterval(() => {
 let width = 18;
 let height = 10;
 let blockSize = 50;
+var countdown;
 
 const app = new PIXI.Application({
     view: canvas,
@@ -23,64 +24,6 @@ const app = new PIXI.Application({
     backgroundColor: 0x181818
 });
 
-function Countdown(elem, seconds) {
-    var that = {};
-  
-    that.elem = elem;
-    that.seconds = seconds;
-    that.totalTime = seconds * 100;
-    that.usedTime = 0;
-    that.startTime = +new Date();
-    that.timer = null;
-  
-    that.count = function() {
-      that.usedTime = Math.floor((+new Date() - that.startTime) / 10);
-  
-      var tt = that.totalTime - that.usedTime;
-      if (tt <= 0) {
-        that.elem.text = '00.00';
-        clearInterval(that.timer);
-        app.stage.removeChild(gameScene);
-        app.stage.addChild(loseScene)
-      } else {
-        var mi = Math.floor(tt / (60 * 100));
-        var ss = Math.floor((tt - mi * 60 * 100) / 100);
-        var ms = tt - Math.floor(tt / 100) * 100;
-  
-        that.elem.text = that.fillZero(ss) + "." + that.fillZero(ms);
-      }
-    };
-    
-    that.init = function() {
-      if(that.timer){
-        clearInterval(that.timer);
-        that.elem.text = '00.00';
-        that.totalTime = seconds * 100;
-        that.usedTime = 0;
-        that.startTime = +new Date();
-        that.timer = null;
-      }
-    };
-  
-    that.start = function() {
-      if(!that.timer){
-         that.timer = setInterval(that.count, 1);
-      }
-    };
-
-    that.stop = function() {
-        if (that.timer) clearInterval(that.timer);
-        app.stage.removeChild(gameScene);
-        app.stage.addChild(winScene);
-    };
-
-    that.fillZero = function(num) {
-        return num < 10 ? '0' + num : num;
-    };
-
-    return that;
-}
-
 app.ticker.maxFPS = 5;
 
 const graphics = new PIXI.Graphics();
@@ -88,7 +31,8 @@ const graphics = new PIXI.Graphics();
 let state = "main";
 
 const mainScene = new PIXI.Container();
-
+const gameScene = new PIXI.Container();
+var updateScene;
 
 const style = new PIXI.TextStyle({ fill: "#21B700", fontSize: 50 });
 const startGame = new PIXI.Text("Start Game", style);
@@ -97,15 +41,12 @@ startGame.buttonMode = true;
 startGame.anchor.set(0.5, 0.5);
 startGame.position.set((width*blockSize)/2, (height*blockSize)/2);
 startGame.on('click', () => {
-    state = "game";
     app.stage.removeChild(mainScene);
     app.stage.addChild(gameScene);
+    updateScene = createGameScene(gameScene);
+    state = "game";
 });
 mainScene.addChild(startGame);
-
-
-const gameScene = new PIXI.Container();
-const updateScene = createGameScene(gameScene);
 
 const winScene = new PIXI.Container();
 const success = new PIXI.Text("ATM Hacked Successfully", style);
@@ -250,9 +191,6 @@ function createGameScene() {
     time.anchor.set(0.5,0.5);
     gameScene.addChild(time);
 
-    let countdown = new Countdown(time, 15);
-    countdown.start();
-
     const keysMaps = {};
     const speed = 10;
 
@@ -263,6 +201,9 @@ function createGameScene() {
     document.onkeyup = (event) => {
         keysMaps[event.code] = false;
     };
+
+    let countdown = new Countdown(time, 15);
+    countdown.start();
 
     let completed = 0;
     let spaceUsed = false;
@@ -350,4 +291,62 @@ function genStr(length) {
  charactersLength));
    }
    return result;
+}
+
+function Countdown(elem, seconds) {
+    var that = {};
+  
+    that.elem = elem;
+    that.seconds = seconds;
+    that.totalTime = seconds * 100;
+    that.usedTime = 0;
+    that.startTime = +new Date();
+    that.timer = null;
+  
+    that.count = function() {
+      that.usedTime = Math.floor((+new Date() - that.startTime) / 10);
+  
+      var tt = that.totalTime - that.usedTime;
+      if (tt <= 0) {
+        that.elem.text = '00.00';
+        clearInterval(that.timer);
+        app.stage.removeChild(gameScene);
+        app.stage.addChild(loseScene)
+      } else {
+        var mi = Math.floor(tt / (60 * 100));
+        var ss = Math.floor((tt - mi * 60 * 100) / 100);
+        var ms = tt - Math.floor(tt / 100) * 100;
+  
+        that.elem.text = that.fillZero(ss) + "." + that.fillZero(ms);
+      }
+    };
+    
+    that.init = function() {
+      if(that.timer){
+        clearInterval(that.timer);
+        that.elem.text = '00.00';
+        that.totalTime = seconds * 100;
+        that.usedTime = 0;
+        that.startTime = +new Date();
+        that.timer = null;
+      }
+    };
+  
+    that.start = function() {
+      if(!that.timer){
+         that.timer = setInterval(that.count, 1);
+      }
+    };
+
+    that.stop = function() {
+        if (that.timer) clearInterval(that.timer);
+        app.stage.removeChild(gameScene);
+        app.stage.addChild(winScene);
+    };
+
+    that.fillZero = function(num) {
+        return num < 10 ? '0' + num : num;
+    };
+
+    return that;
 }
