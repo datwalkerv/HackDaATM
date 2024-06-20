@@ -24,8 +24,6 @@ const app = new PIXI.Application({
     backgroundColor: 0x181818
 });
 
-app.ticker.maxFPS = 5;
-
 const graphics = new PIXI.Graphics();
 
 let state = "main";
